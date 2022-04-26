@@ -7,6 +7,7 @@ let dir = 0.01;
 let directionalLight;
 
 let mixer;
+let mixerArray = [];
 
 const clock = new THREE.Clock();
 
@@ -38,8 +39,8 @@ async function init3D() {
     scene = new THREE.Scene();
     camera3D = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1200);
 
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
-    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
@@ -56,47 +57,47 @@ async function init3D() {
     //add light
     // scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );
 
-				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-				hemiLight.position.set( 0, 200, 0 );
-				scene.add( hemiLight );
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+    hemiLight.position.set(0, 200, 0);
+    scene.add(hemiLight);
 
-				const dirLight = new THREE.DirectionalLight( 0xffffff );
-				dirLight.position.set( 0, 200, 100 );
-				dirLight.castShadow = true;
-				dirLight.shadow.camera.top = 180;
-				dirLight.shadow.camera.bottom = - 100;
-				dirLight.shadow.camera.left = - 120;
-				dirLight.shadow.camera.right = 120;
-				scene.add( dirLight );
+    const dirLight = new THREE.DirectionalLight(0xffffff);
+    dirLight.position.set(0, 200, 100);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.top = 180;
+    dirLight.shadow.camera.bottom = - 100;
+    dirLight.shadow.camera.left = - 120;
+    dirLight.shadow.camera.right = 120;
+    scene.add(dirLight);
 
 
 
-directionalLight = new THREE.DirectionalLight(0xfcfcfc, 2);
-directionalLight.position.set(0, 1, 0);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+    directionalLight = new THREE.DirectionalLight(0xfcfcfc, 2);
+    directionalLight.position.set(0, 1, 0);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
 
-let light = new THREE.PointLight(0xfcfcfc, 1);
-light.position.set(0, 300, 500);
-scene.add(light)
+    let light = new THREE.PointLight(0xfcfcfc, 1);
+    light.position.set(0, 300, 500);
+    scene.add(light)
 
-let light2 = new THREE.PointLight(0xfcfcfc, 1);
-light2.position.set(500, 100, 0);
-scene.add(light2)
+    let light2 = new THREE.PointLight(0xfcfcfc, 1);
+    light2.position.set(500, 100, 0);
+    scene.add(light2)
 
-let light3 = new THREE.AmbientLight(0xfcfcfc, 2.5);
-light3.position.set(0, -50, 0);
-scene.add(light3)
+    let light3 = new THREE.AmbientLight(0xfcfcfc, 2.5);
+    light3.position.set(0, -50, 0);
+    scene.add(light3)
 
-let light4 = new THREE.PointLight(0xfcfcfc, 1);
-light4.position.set(100, -100, 0);
-scene.add(light4);
+    let light4 = new THREE.PointLight(0xfcfcfc, 1);
+    light4.position.set(100, -100, 0);
+    scene.add(light4);
 
-// const light = new THREE.AmbientLight( 0x404040 ); // soft white light
-// scene.add( light );
+    // const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    // scene.add( light );
 
-   let bgGeometery = new THREE.SphereGeometry(1000, 60, 40);
-   // let bgGeometery = new THREE.CylinderGeometry(725, 725, 1000, 10, 10, true)
+    let bgGeometery = new THREE.SphereGeometry(1000, 60, 40);
+    // let bgGeometery = new THREE.CylinderGeometry(725, 725, 1000, 10, 10, true)
     bgGeometery.scale(-1, 1, 1);
     // has to be power of 2 like (4096 x 2048) or(8192x4096).  i think it goes upside down because texture is not right size
     let panotexture = new THREE.TextureLoader().load("sky_09.png");
@@ -124,7 +125,11 @@ function animate() {
     // }
 
     const delta = clock.getDelta();
-    if ( mixer ) mixer.update( delta );
+    if (mixer) {
+        for (let i = 0; i < mixerArray.length; i++) {
+            mixerArray[i].update(delta);
+        }
+    }
 
     renderer.render(scene, camera3D);
 }
@@ -212,100 +217,95 @@ async function predict() {
     // Prediction 2: run input through teachable machine classification model
     const prediction = await model.predict(posenetOutput);
     const maxClass = prediction.reduce((prev, current) =>
-    prev.probability > current.probability ? prev : current
-  );
+        prev.probability > current.probability ? prev : current
+    );
 
-    if (maxClass.className === "wolf" && maxClass.probability ===1) {
+    if (maxClass.className === "wolf" && maxClass.probability === 1) {
         outByte = 1;
 
         const loader = new THREE.GLTFLoader();
-loader.load('wolf.glb', function(gltf){
+        loader.load('wolf.glb', function (gltf) {
 
-    wolf = gltf.scene;  // 3D object is loaded
+            wolf = gltf.scene;  // 3D object is loaded
 
-    let front = getCoordsInFrontOfCamera();
-    wolf.position.set(front.x, front.y, front.z);
+            let front = getCoordsInFrontOfCamera();
+            wolf.position.set(front.x, front.y, front.z);
 
-    wolf.rotation.y = 2*Math.PI/3;
-    // rabbit.position.y = -1;
-    wolf.traverse(c => {
-        c.castShadow=true;
-    })
+            wolf.rotation.y = 2 * Math.PI / 3;
+            // rabbit.position.y = -1;
+            wolf.traverse(c => {
+                c.castShadow = true;
+            })
 
-    mixer = new THREE.AnimationMixer(gltf.scene)
+            mixer = new THREE.AnimationMixer(gltf.scene)
+            mixerArray.push(mixer);
 
-    const animationAction = mixer.clipAction( gltf.animations[ 0 ] )
-        animationAction.play();
-    scene.add(gltf.scene);
-},
-// called while loading is progressing
-function ( xhr ) {
+            const animationAction = mixer.clipAction(gltf.animations[0])
+            animationAction.play();
+            scene.add(gltf.scene);
+        },
+            // called while loading is progressing
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            // called when loading has errors
+            function (error) {
 
-    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                console.log('An error happened');
 
-},
-// called when loading has errors
-function ( error ) {
+            }
 
-    console.log( 'An error happened' );
-
-}
-
-);
-
+        );
         isWolfExisting = true;
         console.log("wolf");
 
 
-      } else if (maxClass.className === "rabbit" && maxClass.probability >=0.95) {
+    } else if (maxClass.className === "rabbit" && maxClass.probability >= 0.95) {
         outByte = 2;
         console.log("rabbit");
         let rabbitAnimation;
 
         const loader = new THREE.GLTFLoader();
         if (isWolfExisting) {
-          rabbitAnimation= 'rabbit_run.glb';
-        } else {rabbitAnimation= 'rabbit_bashful.glb';}
+            rabbitAnimation = 'rabbit_run.glb';
+        } else { rabbitAnimation = 'rabbit_bashful.glb'; }
 
-loader.load(rabbitAnimation, function(gltf){
+        loader.load(rabbitAnimation, function (gltf) {
 
-    rabbit = gltf.scene;  // 3D object is loaded
-    //  rabbit.scale.set(2, 2, 2);
+            rabbit = gltf.scene;  // 3D object is loaded
+            //  rabbit.scale.set(2, 2, 2);
 
 
-    let front = getCoordsInFrontOfCamera();
-    rabbit.position.set(front.x, front.y, front.z);
+            let front = getCoordsInFrontOfCamera();
+            rabbit.position.set(front.x, front.y, front.z);
 
-    rabbit.rotation.y = Math.PI/2;
-    // rabbit.position.y = -1;
-    rabbit.traverse(c => {
-        c.castShadow=true;
-    })
+            rabbit.rotation.y = Math.PI / 2;
+            // rabbit.position.y = -1;
+            rabbit.traverse(c => {
+                c.castShadow = true;
+            })
 
-    mixer = new THREE.AnimationMixer(gltf.scene)
+            mixer = new THREE.AnimationMixer(gltf.scene)
+            mixerArray.push(mixer);
 
-    const animationAction = mixer.clipAction( gltf.animations[ 0 ] )
-        animationAction.play();
-    scene.add(gltf.scene);
-},
-// called while loading is progressing
-function ( xhr ) {
+            const animationAction = mixer.clipAction(gltf.animations[0])
+            animationAction.play();
+            scene.add(gltf.scene);
+        },
+            // called while loading is progressing
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            // called when loading has errors
+            function (error) {
+                console.log('An error happened');
+            }
 
-    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-},
-// called when loading has errors
-function ( error ) {
-
-    console.log( 'An error happened' );
-
-}
-
-);
-      } else {
+        );
+    } else {
         outByte = 0;
         console.log("what?");
-        }
+    }
 
     // finally draw the poses
     // drawPose(pose);
